@@ -244,7 +244,10 @@
 
     if (prepItems && prepItems.length) {
       html += '<div class="prep-card"><h4>🎒 Pack &amp; Prepare</h4><ul>';
-      prepItems.forEach(function (p) { html += "<li>" + escapeHtml(p.item) + "</li>"; });
+      prepItems.forEach(function (p) {
+        var link = p.link ? ' <a href="' + escapeHtml(p.link) + '" target="_blank" rel="noopener">Open album</a>' : "";
+        html += "<li>" + escapeHtml(p.item) + link + "</li>";
+      });
       html += "</ul></div>";
     }
 

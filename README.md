@@ -17,7 +17,8 @@ editing a spreadsheet-like file can update it.
    - `highlight` — `yes`/`no`, gives the card special hero styling (used for the birthday dinner)
    - `title`, `location`, `description`, `link`, `contact_name`, `contact_phone`, `emoji`
 3. General trip info (guest arrivals, transport tips, money, key contacts) lives in [`data/info.csv`](data/info.csv), grouped by `category`.
-4. Per-day packing/prep reminders (shown at the top of each day, above the timeline) live in [`data/prep.csv`](data/prep.csv) — just `date` and `item`, add as many rows per date as you want.
+4. Per-day packing/prep reminders (shown at the top of each day, above the timeline) live in [`data/prep.csv`](data/prep.csv) — `date`, `item`, and an optional `link` (renders as an "Open album"-style button). Add as many rows per date as you want.
+   **Any `item` text containing a comma must be wrapped in double quotes** (e.g. `"Sun protection — hat, sunscreen, sunglasses"`), same as any CSV — otherwise everything after the first comma gets silently cut off.
 5. Commit and push. Vercel redeploys automatically and the CSVs are served with no-cache headers, so changes show up on next reload — no code changes needed.
 
 ## Other features

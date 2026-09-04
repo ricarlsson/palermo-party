@@ -29,7 +29,10 @@ date,day_label,start_time,end_time,type,track,optional,highlight,title,location,
 2026-09-08,Tuesday — Optional: Cefalù Day Trip,09:00,,event,Optional: Cefalù,yes,no,Walk to Palermo train station,Palermo Centrale,About 500m from Via Roma 97,,,,🚶
 2026-09-08,Tuesday — Optional: Cefalù Day Trip,09:36,10:23,event,Optional: Cefalù,yes,no,Train to Cefalù,Palermo Centrale → Cefalù,Buy tickets in advance on the OMIO app (~8 EUR one way) or at the station,https://www.omio.com,,,🚆
 2026-09-08,Tuesday — Optional: Cefalù Day Trip,10:45,,event,Optional: Cefalù,yes,no,Arrive at Lavatoio Medievale (Medieval Beach),Lavatoio Medievale Cefalù,12-15 min walk from the station,,,,🏖️
-2026-09-08,Tuesday — Optional: Cefalù Day Trip,18:00,,tbc,Optional: Cefalù,yes,no,Dinner in Cefalù — TBC,,About a 10hr gap before the first return train — worth planning a Cefalù dinner,,,,🍽️
+2026-09-08,,,,event,Optional: Cefalù,yes,no,"Extension: train to Santo Stefano di Camastra",Santo Stefano di Camastra,"Sicily's ""City of Ceramics"" — about 35 miles (50km) further east along the coast from Cefalù. Streets, building facades, benches and signs are decorated with hand-painted majolica tiles. Reachable by train continuing on from Cefalù — check onward times at the station.",,,,🏺
+2026-09-08,,,,event,Optional: Cefalù,yes,no,Browse the ceramics workshops,Santo Stefano di Camastra,"Dozens of artisan workshops sell traditional testa di moro (Moorish head vases), pine cones, volcanic stone tables and hand-painted tableware.",,,,🎨
+2026-09-08,,,,event,Optional: Cefalù,yes,no,Museo della Ceramica,"Palazzo Trabia, Santo Stefano di Camastra",Ceramics museum housed in the historic Palazzo Trabia.,,,,🏛️
+2026-09-08,Tuesday — Optional: Cefalù Day Trip,18:00,,tbc,Optional: Cefalù,yes,no,Dinner in Cefalù — TBC,,About a 10hr gap before the first return train — worth planning a Cefalù dinner (or one in Santo Stefano di Camastra if you took the ceramics extension),,,,🍽️
 2026-09-08,Tuesday — Optional: Cefalù Day Trip,20:20,21:09,event,Return option A,yes,no,Return train — Option A,Cefalù → Palermo,,,,,🚆
 2026-09-08,Tuesday — Optional: Cefalù Day Trip,21:13,22:03,event,Return option B,yes,no,Return train — Option B,Cefalù → Palermo,,,,,🚆
 2026-09-08,Tuesday — Optional: Cefalù Day Trip,22:06,22:58,event,Return option C,yes,no,Return train — Option C,Cefalù → Palermo,,,,,🚆

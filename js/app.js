@@ -5,6 +5,10 @@
   var TRIP_END = "2026-09-09";
   var CACHE_KEY_SCHEDULE = "pp_schedule_csv_v1";
   var CACHE_KEY_INFO = "pp_info_csv_v1";
+  var CACHE_KEY_PREP = "pp_prep_csv_v1";
+  var CACHE_KEY_WEATHER = "pp_weather_v1";
+  var WEATHER_LAT = 38.1157;
+  var WEATHER_LON = 13.3613;
 
   function safeGetCache(key) {
     try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -28,6 +32,73 @@
         if (cached) return cached;
         throw new Error("no data available for " + url);
       });
+  }
+
+  // ---------- Weather (Open-Meteo — free, no API key, CORS-enabled) ----------
+
+  function fetchWeather() {
+    var url =
+      "https://api.open-meteo.com/v1/forecast?latitude=" + WEATHER_LAT + "&longitude=" + WEATHER_LON +
+      "&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+      "&timezone=Europe%2FRome&start_date=" + TRIP_START + "&end_date=" + TRIP_END;
+    return fetch(url)
+      .then(function (res) {
+        if (!res.ok) throw new Error("weather fetch failed");
+        return res.json();
+      })
+      .then(function (data) {
+        safeSetCache(CACHE_KEY_WEATHER, JSON.stringify({ fetchedAt: Date.now(), data: data }));
+        return data;
+      })
+      .catch(function () {
+        var cached = safeGetCache(CACHE_KEY_WEATHER);
+        if (cached) {
+          try { return JSON.parse(cached).data; } catch (e) { return null; }
+        }
+        return null;
+      });
+  }
+
+  function buildWeatherByDate(weatherData) {
+    var map = {};
+    if (!weatherData || !weatherData.daily || !weatherData.daily.time) return map;
+    var d = weatherData.daily;
+    d.time.forEach(function (date, i) {
+      map[date] = {
+        code: d.weathercode ? d.weathercode[i] : null,
+        max: d.temperature_2m_max ? Math.round(d.temperature_2m_max[i]) : null,
+        min: d.temperature_2m_min ? Math.round(d.temperature_2m_min[i]) : null,
+        pop: d.precipitation_probability_max ? d.precipitation_probability_max[i] : null,
+      };
+    });
+    return map;
+  }
+
+  function weatherIcon(code) {
+    var map = {
+      0: ["☀️", "Clear"], 1: ["🌤️", "Mostly clear"], 2: ["⛅", "Partly cloudy"], 3: ["☁️", "Overcast"],
+      45: ["🌫️", "Fog"], 48: ["🌫️", "Fog"],
+      51: ["🌦️", "Light drizzle"], 53: ["🌦️", "Drizzle"], 55: ["🌦️", "Heavy drizzle"],
+      56: ["🌧️", "Freezing drizzle"], 57: ["🌧️", "Freezing drizzle"],
+      61: ["🌧️", "Light rain"], 63: ["🌧️", "Rain"], 65: ["🌧️", "Heavy rain"],
+      66: ["🌧️", "Freezing rain"], 67: ["🌧️", "Freezing rain"],
+      71: ["🌨️", "Light snow"], 73: ["🌨️", "Snow"], 75: ["🌨️", "Heavy snow"], 77: ["🌨️", "Snow grains"],
+      80: ["🌦️", "Rain showers"], 81: ["🌦️", "Rain showers"], 82: ["🌧️", "Heavy showers"],
+      85: ["🌨️", "Snow showers"], 86: ["🌨️", "Snow showers"],
+      95: ["⛈️", "Thunderstorm"], 96: ["⛈️", "Thunderstorm"], 99: ["⛈️", "Thunderstorm"],
+    };
+    return map[code] || ["🌡️", "—"];
+  }
+
+  function weatherChipHtml(w) {
+    if (!w || w.max === null || w.max === undefined) return "";
+    var icon = weatherIcon(w.code);
+    var pop = w.pop !== null && w.pop !== undefined && w.pop >= 30 ? " · " + w.pop + "%💧" : "";
+    return (
+      '<span class="weather-chip" title="' + escapeHtml(icon[1]) + '">' +
+      icon[0] + " " + w.max + "°/" + w.min + "°" + pop +
+      "</span>"
+    );
   }
 
   // Minimal RFC4180-ish CSV parser (handles quoted fields, embedded commas/
@@ -157,7 +228,7 @@
     );
   }
 
-  function renderDay(dateStr, rows) {
+  function renderDay(dateStr, rows, prepItems, weather) {
     var main = rows.filter(function (r) {
       var t = (r.track || "").trim();
       return !t || t === "Everyone";
@@ -166,7 +237,17 @@
     var untimed = main.filter(function (r) { return !r.start_time; });
 
     var html = '<section class="day-section" id="day-' + dateStr + '">';
-    html += '<h3 class="day-heading">' + escapeHtml(dayHeadingFor(rows)) + "</h3>";
+    html +=
+      '<div class="day-heading-row"><h3 class="day-heading">' + escapeHtml(dayHeadingFor(rows)) + "</h3>" +
+      weatherChipHtml(weather) +
+      "</div>";
+
+    if (prepItems && prepItems.length) {
+      html += '<div class="prep-card"><h4>🎒 Pack &amp; Prepare</h4><ul>';
+      prepItems.forEach(function (p) { html += "<li>" + escapeHtml(p.item) + "</li>"; });
+      html += "</ul></div>";
+    }
+
     timed.forEach(function (r) { html += eventCardHtml(r); });
     if (untimed.length) {
       html += '<p class="throughout-label">Also today</p>';
@@ -339,10 +420,14 @@
   Promise.all([
     fetchCsv("/data/schedule.csv", CACHE_KEY_SCHEDULE),
     fetchCsv("/data/info.csv", CACHE_KEY_INFO),
+    fetchCsv("/data/prep.csv", CACHE_KEY_PREP),
+    fetchWeather(),
   ])
     .then(function (results) {
       var scheduleRows = parseCsv(results[0]).filter(function (r) { return r.date; });
       var infoRows = parseCsv(results[1]).filter(function (r) { return r.category; });
+      var prepRows = parseCsv(results[2]).filter(function (r) { return r.date; });
+      var weatherByDate = buildWeatherByDate(results[3]);
 
       var preArrival = scheduleRows.filter(function (r) { return r.date < TRIP_START; });
       var tripRows = scheduleRows.filter(function (r) { return r.date >= TRIP_START && r.date <= TRIP_END; });
@@ -355,13 +440,21 @@
       });
       dateOrder.sort();
 
+      var prepByDate = {};
+      prepRows.forEach(function (r) {
+        if (!prepByDate[r.date]) prepByDate[r.date] = [];
+        prepByDate[r.date].push(r);
+      });
+
       var days = dateOrder.map(function (d) { return { date: d, rows: byDate[d] }; });
 
       renderDayNav(days);
       renderNowNext(scheduleRows);
 
       var scheduleEl = document.getElementById("schedule");
-      scheduleEl.innerHTML = days.map(function (d) { return renderDay(d.date, d.rows); }).join("");
+      scheduleEl.innerHTML = days
+        .map(function (d) { return renderDay(d.date, d.rows, prepByDate[d.date] || [], weatherByDate[d.date]); })
+        .join("");
 
       renderGoodToKnow(infoRows, preArrival);
 
@@ -381,6 +474,17 @@
           { rootMargin: "-30% 0px -60% 0px" }
         );
         sections.forEach(function (s) { observer.observe(s); });
+      }
+
+      // Auto-scroll to today's day, if the trip is currently underway
+      var todayStr = new Date().toISOString().slice(0, 10);
+      if (todayStr >= TRIP_START && todayStr <= TRIP_END) {
+        var todaySection = document.getElementById("day-" + todayStr);
+        if (todaySection) {
+          setTimeout(function () {
+            todaySection.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 350);
+        }
       }
     })
     .catch(function (err) {

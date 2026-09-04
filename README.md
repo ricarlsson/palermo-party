@@ -17,7 +17,13 @@ editing a spreadsheet-like file can update it.
    - `highlight` — `yes`/`no`, gives the card special hero styling (used for the birthday dinner)
    - `title`, `location`, `description`, `link`, `contact_name`, `contact_phone`, `emoji`
 3. General trip info (guest arrivals, transport tips, money, key contacts) lives in [`data/info.csv`](data/info.csv), grouped by `category`.
-4. Commit and push. Vercel redeploys automatically and the CSVs are served with no-cache headers, so changes show up on next reload — no code changes needed.
+4. Per-day packing/prep reminders (shown at the top of each day, above the timeline) live in [`data/prep.csv`](data/prep.csv) — just `date` and `item`, add as many rows per date as you want.
+5. Commit and push. Vercel redeploys automatically and the CSVs are served with no-cache headers, so changes show up on next reload — no code changes needed.
+
+## Other features
+
+- **Auto-scroll**: on load, if the trip is currently underway, the page scrolls straight to today's section.
+- **Weather**: each day heading shows a live forecast (high/low, rain chance) pulled client-side from [Open-Meteo](https://open-meteo.com) (free, no API key, no backend needed) for Palermo. It fails silently and just omits the chip if the forecast is unavailable (e.g. the date is outside Open-Meteo's ~16-day forecast window, or the API is unreachable).
 
 **Please don't add personal phone numbers to the CSVs** — the page is public
 (even though it's not search-indexed). Business/vendor contacts (restaurants,
@@ -44,6 +50,7 @@ css/styles.css       design system + layout
 js/app.js            CSV loading/parsing/rendering (no external dependencies)
 data/schedule.csv    the day-by-day schedule
 data/info.csv        "Good to Know" info (guests, transport, money, contacts)
+data/prep.csv         per-day packing/prep reminders
 vercel.json          no-cache headers for the CSV data
 robots.txt           blocks search indexing
 ```
